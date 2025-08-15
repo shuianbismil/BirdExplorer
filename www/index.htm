@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bird Explorer - WingWatch</title>
+	<script type="text/javascript" src="cordova.js"></script>
+    <script src="react.development.js"></script>
+    <script src="react-dom.development.js"></script>
+    <script src="babel.min.js"></script>
+    <script src="asfsa.js"></script>
+    <style>
+        /* Design System Variables */
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 222.2 84% 4.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 222.2 84% 4.9%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 222.2 84% 4.9%;
+            --primary: 221.2 83.2% 53.3%;
+            --primary-foreground: 210 40% 98%;
+            --secondary: 210 40% 96%;
+            --secondary-foreground: 222.2 84% 4.9%;
+            --muted: 210 40% 96%;
+            --muted-foreground: 215.4 16.3% 46.9%;
+            --accent: 210 40% 96%;
+            --accent-foreground: 222.2 84% 4.9%;
+            --destructive: 0 84.2% 60.2%;
+            --destructive-foreground: 210 40% 98%;
+            --border: 214.3 31.8% 91.4%;
+            --input: 214.3 31.8% 91.4%;
+            --ring: 221.2 83.2% 53.3%;
+            --radius: 0.75rem;
+        }
+.text-sm {font-size: 1.2rem !important;}
+        .dark {
+            --background: 222.2 84% 4.9%;
+            --foreground: 210 40% 98%;
+            --card: 222.2 84% 4.9%;
+            --card-foreground: 210 40% 98%;
+            --popover: 222.2 84% 4.9%;
+            --popover-foreground: 210 40% 98%;
+            --primary: 217.2 91.2% 59.8%;
+            --primary-foreground: 222.2 84% 4.9%;
+            --secondary: 217.2 32.6% 17.5%;
+            --secondary-foreground: 210 40% 98%;
+            --muted: 217.2 32.6% 17.5%;
+            --muted-foreground: 215 20.2% 65.1%;
+            --accent: 217.2 32.6% 17.5%;
+            --accent-foreground: 210 40% 98%;
+            --destructive: 0 62.8% 30.6%;
+            --destructive-foreground: 210 40% 98%;
+            --border: 217.2 32.6% 17.5%;
+            --input: 217.2 32.6% 17.5%;
+            --ring: 224.3 76.3% 94.1%;
+        }
+
+        * {
+            border-color: hsl(var(--border));
+        }
+
+        body {
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+        }
+
+        /* Custom Gradients */
+        .nature-gradient {
+            background: linear-gradient(135deg, 
+                hsl(142 71% 45%) 0%, 
+                hsl(158 64% 52%) 25%, 
+                hsl(200 98% 39%) 50%, 
+                hsl(221 83% 53%) 75%, 
+                hsl(262 83% 58%) 100%);
+        }
+
+        .sky-gradient {
+            background: linear-gradient(135deg, 
+                hsl(200 100% 80%) 0%, 
+                hsl(220 100% 85%) 50%, 
+                hsl(240 100% 90%) 100%);
+        }
+
+        /* Bird Card Styles */
+        .bird-card {
+            background: hsl(var(--card));
+            color: hsl(var(--card-foreground));
+            border: 1px solid hsl(var(--border));
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .bird-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px -10px hsl(var(--primary) / 0.3);
+        }
+
+        /* Navigation Styles */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: hsl(var(--background));
+            border-top: 1px solid hsl(var(--border));
+            display: flex;
+            justify-content: space-around;
+            padding: 0.5rem;
+            z-index: 50;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: hsl(var(--muted-foreground));
+        }
+
+        .nav-item:hover {
+            background: hsl(var(--secondary));
+            color: hsl(var(--secondary-foreground));
+        }
+
+        .nav-item.active {
+            background: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+        }
+
+        /* Animations */
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .animate-slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Modal Styles */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background: hsl(var(--card));
+            color: hsl(var(--card-foreground));
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 32rem;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid hsl(var(--border));
+        }
+
+        /* Button Styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: calc(var(--radius) - 2px);
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .btn-primary {
+            background: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+        }
+
+        .btn-primary:hover {
+            background: hsl(var(--primary) / 0.9);
+        }
+
+        .btn-secondary {
+            background: hsl(var(--secondary));
+            color: hsl(var(--secondary-foreground));
+        }
+
+        .btn-secondary:hover {
+            background: hsl(var(--secondary) / 0.8);
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 1rem;
+        }
+
+        .btn-md {
+            padding: 0.5rem 1rem;
+        }
+
+        /* Card Styles */
+        .card {
+            background: hsl(var(--card));
+            color: hsl(var(--card-foreground));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+        }
+
+        /* Badge Styles */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 9999px;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 0.25rem 0.5rem;
+        }
+
+        .badge-default {
+            background: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+        }
+
+        .badge-secondary {
+            background: hsl(var(--secondary));
+            color: hsl(var(--secondary-foreground));
+        }
+
+        /* Input Styles */
+        .input {
+            display: flex;
+            height: 2.5rem;
+            width: 100%;
+            border-radius: calc(var(--radius) - 2px);
+            border: 1px solid hsl(var(--input));
+            background: hsl(var(--background));
+            padding: 0.5rem 0.75rem;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: hsl(var(--ring));
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback } = React;
+
+        // Bird data - expanded to match NPM version
+        const birds = [
+            {
+                id: 1,
+                name: "Bald Eagle",
+                scientificName: "Haliaeetus leucocephalus",
+                image: "🦅",
+                habitat: "Near water bodies, forests",
+                wingspan: "6-7.5 feet",
+                weight: "6.6-14 lbs",
+                description: "America's national bird, known for its distinctive white head and tail feathers that develop at maturity.",
+                flightSpeed: "99-124 mph",
+                flightAltitude: "10,000 feet",
+                countries: ["United States", "Canada", "Mexico"],
+                bodyParts: {
+                    beak: "Large, hooked yellow beak perfect for tearing fish and meat",
+                    eyes: "Sharp yellow eyes with excellent vision for spotting prey from great distances",
+                    head: "Distinctive white feathered head that develops at maturity (4-5 years)",
+                    wings: "Broad, powerful wings with dark brown feathers for soaring",
+                    tail: "White tail feathers that fan out during flight for steering",
+                    legs: "Strong yellow talons capable of carrying heavy prey",
+                    body: "Dark brown body with dense feathers for insulation and waterproofing"
+                }
+            },
+            {
+                id: 2,
+                name: "Ruby-throated Hummingbird",
+                scientificName: "Archilochus colubris",
+                image: "🐦",
+                habitat: "Gardens, forests, parks",
+                wingspan: "3.1-4.3 inches",
+                weight: "0.1-0.2 oz",
+                description: "Tiny bird with incredible hovering ability and iridescent plumage that catches sunlight.",
+                flightSpeed: "30 mph",
+                flightAltitude: "500 feet",
+                countries: ["United States", "Canada", "Central America"],
+                bodyParts: {
+                    beak: "Long, needle-like beak for reaching deep into flowers for nectar",
+                    eyes: "Small but keen eyes for spotting flowers and territorial threats",
+                    head: "Iridescent green head that shimmers brilliantly in sunlight",
+                    wings: "Rapid-beating wings (53 beats per second) allowing perfect hovering flight",
+                    tail: "Forked tail used for precise maneuvering during flight",
+                    legs: "Tiny legs mainly used for perching, rarely for walking",
+                    body: "Compact emerald green body with males having brilliant ruby-red throat"
+                }
+            },
+            {
+                id: 3,
+                name: "Great Blue Heron",
+                scientificName: "Ardea herodias",
+                image: "🐦‍⬛",
+                habitat: "Wetlands, shores, swamps",
+                wingspan: "5.5-6.6 feet",
+                weight: "4.6-5.5 lbs",
+                description: "Large wading bird known for its patient hunting style and graceful flight.",
+                flightSpeed: "20-30 mph",
+                flightAltitude: "2,000 feet",
+                countries: ["United States", "Canada", "Mexico", "Caribbean"],
+                bodyParts: {
+                    beak: "Sharp, dagger-like bill perfect for spearing fish and frogs",
+                    eyes: "Positioned for excellent binocular vision while hunting in water",
+                    head: "Blue-gray with distinctive black crown stripe and long flexible neck",
+                    wings: "Broad wings with slow, powerful wingbeats for efficient long-distance flight",
+                    tail: "Short tail with elongated ornamental plumes during breeding season",
+                    legs: "Long, sturdy legs perfectly adapted for wading in shallow water",
+                    body: "Large blue-gray body with elegant white and black accent markings"
+                }
+            },
+            {
+                id: 4,
+                name: "Northern Cardinal",
+                scientificName: "Cardinalis cardinalis",
+                image: "🐦",
+                habitat: "Woodlands, gardens, parks",
+                wingspan: "8.9-12.2 inches",
+                weight: "1.5-1.7 oz",
+                description: "Vibrant red songbird and state bird of seven US states, known for year-round presence.",
+                flightSpeed: "25 mph",
+                flightAltitude: "1,000 feet",
+                countries: ["United States", "Mexico", "Belize", "Guatemala"],
+                bodyParts: {
+                    beak: "Strong, thick orange-red cone-shaped beak for cracking seeds and nuts",
+                    eyes: "Dark intelligent eyes surrounded by distinctive black mask in males",
+                    head: "Distinctive pointed crest that can be raised or lowered with mood",
+                    wings: "Rounded wings perfectly suited for quick flights between cover",
+                    tail: "Long, rounded tail used for balance and steering during flight",
+                    legs: "Strong grayish-pink legs for perching and ground foraging",
+                    body: "Males brilliant red all over, females warm brown with red tinges"
+                }
+            },
+            {
+                id: 5,
+                name: "American Robin",
+                scientificName: "Turdus migratorius",
+                image: "🐦",
+                habitat: "Lawns, parks, forests",
+                wingspan: "8-10 inches",
+                weight: "2.7 oz",
+                description: "Common songbird known for its orange-red breast and melodious dawn chorus.",
+                flightSpeed: "20-36 mph",
+                flightAltitude: "3,000 feet",
+                countries: ["United States", "Canada", "Mexico"],
+                bodyParts: {
+                    beak: "Yellow beak with dark tip, perfect for eating earthworms and berries",
+                    eyes: "Dark eyes with distinctive white crescents above and below",
+                    head: "Dark gray to black head contrasting beautifully with bright orange breast",
+                    wings: "Dark gray wings with subtle white spotting for agile maneuvering",
+                    tail: "Dark tail with white outer corners clearly visible during flight",
+                    legs: "Long yellowish legs perfect for running and hopping on ground",
+                    body: "Iconic orange-red breast with crisp white undertail coverts"
+                }
+            },
+            {
+                id: 6,
+                name: "Red-tailed Hawk",
+                scientificName: "Buteo jamaicensis",
+                image: "🦅",
+                habitat: "Open fields, forests, deserts",
+                wingspan: "3.5-4.8 feet",
+                weight: "1.5-3.5 lbs",
+                description: "Large raptor known for its distinctive red tail and excellent soaring ability.",
+                flightSpeed: "20-40 mph",
+                flightAltitude: "15,000 feet",
+                countries: ["United States", "Canada", "Mexico", "Central America"],
+                bodyParts: {
+                    beak: "Sharp, hooked beak for tearing prey",
+                    eyes: "Excellent eyesight, 8x better than humans",
+                    head: "Brown head with keen predatory features",
+                    wings: "Broad wings perfect for soaring on thermals",
+                    tail: "Distinctive rusty-red tail feathers",
+                    legs: "Powerful talons for catching prey",
+                    body: "Brown and white mottled plumage"
+                }
+            }
+        ];
+
+        // Icon components (using Unicode symbols to match lucide-react functionality)
+        const Icons = {
+            Home: () => <span style={{fontSize: '24px'}}>🏠</span>,
+            Search: () => <span style={{fontSize: '24px'}}>🔍</span>,
+            Calculator: () => <span style={{fontSize: '24px'}}>🧮</span>,
+            Info: () => <span style={{fontSize: '24px'}}>ℹ️</span>,
+            X: () => <span style={{fontSize: '20px'}}>✕</span>,
+            Camera: () => <span style={{fontSize: '20px'}}>📷</span>,
+            Upload: () => <span style={{fontSize: '20px'}}>📤</span>,
+            Zap: () => <span style={{fontSize: '20px'}}>⚡</span>,
+            TrendingUp: () => <span style={{fontSize: '20px'}}>📈</span>,
+            MapPin: () => <span style={{fontSize: '20px'}}>📍</span>,
+        };
+
+        // BirdCard Component - Enhanced to match NPM version
+        function BirdCard({ bird }) {
+            const [selectedBodyPart, setSelectedBodyPart] = useState(null);
+            const [showBirdDetailModal, setShowBirdDetailModal] = useState(false);
+            const [showFlightModal, setShowFlightModal] = useState(false);
+
+            const handleBodyPartClick = (bodyPart) => {
+                setSelectedBodyPart(bodyPart);
+                setShowBirdDetailModal(true);
+            };
+
+            const handleFlightClick = () => {
+                setShowFlightModal(true);
+            };
+
+            return (
+                <>
+                    <div className="bird-card p-4 rounded-xl animate-fade-in">
+                        <div className="text-center mb-4">
+                            <div className="text-4xl mb-2">{bird.image}</div>
+                            <h3 className="text-lg font-bold mb-1">{bird.name}</h3>
+                            <p className="text-sm opacity-70 italic">{bird.scientificName}</p>
+                        </div>
+                        
+                        <p className="text-sm mb-4 opacity-80">{bird.description}</p>
+                        
+                        <div className="space-y-3">
+                            <div>
+                                <h4 className="text-sm font-semibold mb-2">Body Parts</h4>
+                                <div className="flex flex-wrap gap-1">
+                                    {Object.keys(bird.bodyParts).map((bodyPart) => (
+                                        <button
+                                            key={bodyPart}
+                                            onClick={() => handleBodyPartClick(bodyPart)}
+                                            className="badge badge-secondary btn-sm capitalize"
+                                        >
+                                            {bodyPart}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            <div className="flex justify-between gap-2">
+                                <button
+                                    onClick={handleFlightClick}
+                                    className="btn btn-primary btn-sm flex items-center gap-1"
+                                >
+                                    <Icons.Zap />
+                                    Flight
+                                </button>
+                                <button
+                                    onClick={handleFlightClick}
+                                    className="btn btn-secondary btn-sm flex items-center gap-1"
+                                >
+                                    <Icons.TrendingUp />
+                                    Speed
+                                </button>
+                                <button
+                                    onClick={handleFlightClick}
+                                    className="btn btn-secondary btn-sm flex items-center gap-1"
+                                >
+                                    <Icons.Info />
+                                    Info
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bird Detail Modal */}
+                    {showBirdDetailModal && (
+                        <BirdDetailModal
+                            isOpen={showBirdDetailModal}
+                            onClose={() => setShowBirdDetailModal(false)}
+                            bird={bird}
+                            bodyPart={selectedBodyPart}
+                        />
+                    )}
+
+                    {/* Flight Info Modal */}
+                    {showFlightModal && (
+                        <FlightInfoModal
+                            isOpen={showFlightModal}
+                            onClose={() => setShowFlightModal(false)}
+                            bird={bird}
+                        />
+                    )}
+                </>
+            );
+        }
+
+        // Bird Detail Modal Component
+        function BirdDetailModal({ isOpen, onClose, bird, bodyPart }) {
+            if (!isOpen || !bodyPart) return null;
+
+            const bodyPartDescription = bird.bodyParts[bodyPart];
+
+            return (
+                <div className="modal-backdrop" onClick={onClose}>
+                    <div className="modal-content animate-slide-up" onClick={(e) => e.stopPropagation()}>
+                        <div className="p-4 border-b flex justify-between items-center">
+                            <h2 className="text-lg font-bold flex items-center gap-2">
+                                <span className="text-2xl">{bird.image}</span>
+                                {bird.name} - {bodyPart.charAt(0).toUpperCase() + bodyPart.slice(1)}
+                            </h2>
+                            <button onClick={onClose} className="text-xl opacity-70 hover:opacity-100">
+                                <Icons.X />
+                            </button>
+                        </div>
+                        <div className="p-4 space-y-4">
+                            <div className="text-center">
+                                <h3 className="text-lg font-semibold capitalize mb-2">{bodyPart}</h3>
+                                <p className="text-sm opacity-80 leading-relaxed">{bodyPartDescription}</p>
+                            </div>
+                            <div className="card p-3">
+                                <h4 className="font-medium mb-1">Quick Facts</h4>
+                                <p className="text-xs opacity-70">Habitat: {bird.habitat}</p>
+                                <p className="text-xs opacity-70">Wingspan: {bird.wingspan}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Flight Info Modal Component
+        function FlightInfoModal({ isOpen, onClose, bird }) {
+            if (!isOpen) return null;
+
+            return (
+                <div className="modal-backdrop" onClick={onClose}>
+                    <div className="modal-content animate-slide-up" onClick={(e) => e.stopPropagation()}>
+                        <div className="p-4 border-b flex justify-between items-center">
+                            <h2 className="text-lg font-bold flex items-center gap-2">
+                                <span className="text-2xl">{bird.image}</span>
+                                {bird.name} Flight Information
+                            </h2>
+                            <button onClick={onClose} className="text-xl opacity-70 hover:opacity-100">
+                                <Icons.X />
+                            </button>
+                        </div>
+                        <div className="p-4 space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="card p-3 text-center">
+                                    <Icons.Zap />
+                                    <p className="font-semibold">{bird.flightSpeed}</p>
+                                    <p className="text-xs opacity-70">Max Speed</p>
+                                </div>
+                                <div className="card p-3 text-center">
+                                    <Icons.TrendingUp />
+                                    <p className="font-semibold">{bird.flightAltitude}</p>
+                                    <p className="text-xs opacity-70">Max Altitude</p>
+                                </div>
+                            </div>
+                            
+                            <div className="card p-3">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Icons.MapPin />
+                                    <h4 className="font-medium">Habitat Regions</h4>
+                                </div>
+                                <div className="flex flex-wrap gap-1">
+                                    {bird.countries.map((country, index) => (
+                                        <span key={index} className="badge badge-default text-xs">
+                                            {country}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            <div className="card p-3">
+                                <h4 className="font-medium mb-2">Physical Characteristics</h4>
+                                <div className="space-y-1 text-sm">
+                                    <p><span className="font-medium">Habitat:</span> {bird.habitat}</p>
+                                    <p><span className="font-medium">Wingspan:</span> {bird.wingspan}</p>
+                                    <p><span className="font-medium">Weight:</span> {bird.weight}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Explore Tab Component
+        function ExploreTab() {
+            return (
+                <div className="pb-20 px-4 pt-6">
+                    <div className="sky-gradient p-6 rounded-2xl mb-6 text-center">
+                        <h1 className="text-2xl font-bold mb-2" style={{color: 'hsl(var(--primary))'}}>
+                            Bird Explorer
+                        </h1>
+                        <p className="text-sm opacity-70">
+                            Discover amazing birds and their unique characteristics
+                        </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {birds.map((bird) => (
+                            <BirdCard key={bird.id} bird={bird} />
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        // Identify Tab Component
+        function IdentifyTab() {
+            const [selectedFeatures, setSelectedFeatures] = useState([]);
+            const [matchedBirds, setMatchedBirds] = useState([]);
+            const [selectedBird, setSelectedBird] = useState(null);
+            const [uploadedPhoto, setUploadedPhoto] = useState(null);
+            const [isSearching, setIsSearching] = useState(false);
+
+            const features = [
+                "Small size", "Medium size", "Large size",
+                "Red coloring", "Blue coloring", "Yellow coloring", "Brown coloring",
+                "Long beak", "Short beak", "Curved beak",
+                "Long legs", "Webbed feet", "Sharp talons",
+                "Crested head", "Long neck", "Forked tail"
+            ];
+
+            const toggleFeature = (feature) => {
+                setSelectedFeatures(prev => {
+                    const newFeatures = prev.includes(feature)
+                        ? prev.filter(f => f !== feature)
+                        : [...prev, feature];
+                    
+                    // Filter birds based on selected features
+                    if (newFeatures.length === 0) {
+                        setMatchedBirds([]);
+                    } else {
+                        const filtered = birds.filter(bird =>
+                            newFeatures.some(f => 
+                                bird.description.toLowerCase().includes(f.toLowerCase()) ||
+                                bird.habitat.toLowerCase().includes(f.toLowerCase()) ||
+                                Object.values(bird.bodyParts).some(desc => 
+                                    desc.toLowerCase().includes(f.toLowerCase())
+                                )
+                            )
+                        );
+                        setMatchedBirds(filtered);
+                    }
+                    
+                    return newFeatures;
+                });
+            };
+
+            const handleFileSelect = (file) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    setUploadedPhoto(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            };
+
+            const handlePhotoSearch = () => {
+                if (!uploadedPhoto) return;
+                
+                setIsSearching(true);
+                setTimeout(() => {
+                    const randomBirds = birds.sort(() => 0.5 - Math.random()).slice(0, 3);
+                    setMatchedBirds(randomBirds);
+                    setIsSearching(false);
+                }, 2000);
+            };
+
+            const handleBirdSelect = (bird) => {
+                setSelectedBird(bird);
+            };
+
+            return (
+                <div className="pb-20 px-4 pt-6 space-y-6">
+                    <div className="text-center">
+                        <h1 className="text-2xl font-bold mb-2">Identify Birds</h1>
+                        <p className="text-sm opacity-70">Upload a photo or select features to identify birds</p>
+                    </div>
+
+                    {/* Photo Identification */}
+                    <div className="card p-4">
+                        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <Icons.Camera />
+                            Photo Identification
+                        </h2>
+                        
+                        <div className="space-y-4">
+                            <div className="flex gap-2">
+                                <button className="btn btn-primary btn-md flex-1">
+                                    <Icons.Camera />
+                                    Take Photo
+                                </button>
+                                <label className="btn btn-secondary btn-md flex-1 cursor-pointer">
+                                    <Icons.Upload />
+                                    Upload Photo
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) handleFileSelect(file);
+                                        }}
+                                        className="hidden"
+                                    />
+                                </label>
+                            </div>
+
+                            {uploadedPhoto && (
+                                <div className="space-y-3">
+                                    <div className="border rounded-lg overflow-hidden">
+                                        <img
+                                            src={uploadedPhoto}
+                                            alt="Uploaded bird"
+                                            className="w-full h-48 object-cover"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={handlePhotoSearch}
+                                        disabled={isSearching}
+                                        className="btn btn-primary btn-md w-full"
+                                    >
+                                        {isSearching ? "Analyzing..." : "Search"}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Manual Identification */}
+                    <div className="card p-4">
+                        <h2 className="text-lg font-semibold mb-4">Manual Identification</h2>
+                        <p className="text-sm opacity-70 mb-4">Select features you observed:</p>
+                        
+                        <div className="flex flex-wrap gap-2 mb-4">
+                            {features.map((feature) => (
+                                <button
+                                    key={feature}
+                                    onClick={() => toggleFeature(feature)}
+                                    className={`badge ${
+                                        selectedFeatures.includes(feature) 
+                                            ? 'badge-default' 
+                                            : 'badge-secondary'
+                                    } cursor-pointer`}
+                                >
+                                    {feature}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Possible Matches */}
+                    {matchedBirds.length > 0 && (
+                        <div className="card p-4">
+                            <h2 className="text-lg font-semibold mb-4">Possible Matches</h2>
+                            <div className="grid grid-cols-1 gap-4">
+                                {matchedBirds.map((bird) => (
+                                    <div
+                                        key={bird.id}
+                                        onClick={() => handleBirdSelect(bird)}
+                                        className="flex items-center gap-4 p-3 border rounded-lg cursor-pointer hover:bg-opacity-50"
+                                        style={{background: 'hsl(var(--secondary))'}}
+                                    >
+                                        <div className="text-3xl">{bird.image}</div>
+                                        <div className="flex-1">
+                                            <h3 className="font-semibold">{bird.name}</h3>
+                                            <p className="text-sm opacity-70 italic">{bird.scientificName}</p>
+                                            <p className="text-sm opacity-60 mt-1">{bird.habitat}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Bird Detail Modal */}
+                    {selectedBird && (
+                        <BirdDetailModal
+                            isOpen={!!selectedBird}
+                            onClose={() => setSelectedBird(null)}
+                            bird={selectedBird}
+                            bodyPart="body"
+                        />
+                    )}
+                </div>
+            );
+        }
+
+        // Calculate Tab Component
+        function CalculateTab() {
+            const [selectedBird, setSelectedBird] = useState(null);
+            const [formData, setFormData] = useState({
+                distance: '',
+                weather: 'clear',
+                country: '',
+                weight: '',
+                altitude: ''
+            });
+            const [flightData, setFlightData] = useState(null);
+            const [showResults, setShowResults] = useState(false);
+
+            const weatherConditions = ['clear', 'cloudy', 'windy', 'rainy'];
+            const countries = ['United States', 'Canada', 'Mexico', 'Central America'];
+
+            const calculateFlightData = () => {
+                if (!selectedBird || !formData.distance) return;
+
+                const distance = parseFloat(formData.distance);
+                const weight = parseFloat(formData.weight) || parseFloat(selectedBird.weight);
+                
+                // Simple calculations for demo
+                const baseSpeed = parseFloat(selectedBird.flightSpeed.split('-')[0]) || 25;
+                const weatherMultiplier = formData.weather === 'windy' ? 0.8 : formData.weather === 'rainy' ? 0.7 : 1;
+                const calculatedSpeed = baseSpeed * weatherMultiplier;
+                
+                const flightTime = distance / calculatedSpeed;
+                const energy = distance * weight * 0.1 * (formData.weather === 'clear' ? 1 : 1.3);
+
+                setFlightData({
+                    speed: calculatedSpeed.toFixed(1),
+                    altitude: formData.altitude || selectedBird.flightAltitude,
+                    efficiency: (85 * weatherMultiplier).toFixed(1),
+                    energyConsumption: energy.toFixed(1)
+                });
+                setShowResults(true);
+            };
+
+            return (
+                <div className="pb-20 px-4 pt-6 space-y-6">
+                    <div className="text-center">
+                        <h1 className="text-2xl font-bold mb-2">Flight Calculator</h1>
+                        <p className="text-sm opacity-70">Calculate flight parameters for different birds</p>
+                    </div>
+
+                    {/* Bird Selection */}
+                    <div className="card p-4">
+                        <h2 className="text-lg font-semibold mb-4">Select Bird</h2>
+                        <div className="grid grid-cols-2 gap-2">
+                            {birds.slice(0, 6).map((bird) => (
+                                <button
+                                    key={bird.id}
+                                    onClick={() => setSelectedBird(bird)}
+                                    className={`p-3 text-left border rounded-lg ${
+                                        selectedBird?.id === bird.id 
+                                            ? 'border-blue-500 bg-blue-50' 
+                                            : 'border-gray-200'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-2xl">{bird.image}</span>
+                                        <div>
+                                            <p className="font-semibold text-sm">{bird.name}</p>
+                                            <p className="text-xs opacity-70">{bird.flightSpeed}</p>
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Flight Parameters */}
+                    {selectedBird && (
+                        <div className="card p-4">
+                            <h2 className="text-lg font-semibold mb-4">Environmental Data</h2>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Distance (miles)</label>
+                                    <input
+                                        type="number"
+                                        value={formData.distance}
+                                        onChange={(e) => setFormData({...formData, distance: e.target.value})}
+                                        className="input"
+                                        placeholder="Enter flight distance"
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Weather Conditions</label>
+                                    <select
+                                        value={formData.weather}
+                                        onChange={(e) => setFormData({...formData, weather: e.target.value})}
+                                        className="input"
+                                    >
+                                        {weatherConditions.map(condition => (
+                                            <option key={condition} value={condition}>
+                                                {condition.charAt(0).toUpperCase() + condition.slice(1)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Altitude (feet)</label>
+                                    <input
+                                        type="number"
+                                        value={formData.altitude}
+                                        onChange={(e) => setFormData({...formData, altitude: e.target.value})}
+                                        className="input"
+                                        placeholder={selectedBird.flightAltitude}
+                                    />
+                                </div>
+
+                                <button
+                                    onClick={calculateFlightData}
+                                    className="btn btn-primary btn-md w-full"
+                                >
+                                    Calculate Flight Parameters
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Results */}
+                    {showResults && flightData && (
+                        <div className="card p-4">
+                            <h2 className="text-lg font-semibold mb-4">Flight Analysis Results</h2>
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <div className="text-center p-3 border rounded">
+                                    <p className="text-2xl font-bold">{flightData.speed}</p>
+                                    <p className="text-xs opacity-70">mph</p>
+                                    <p className="text-sm">Average Speed</p>
+                                </div>
+                                <div className="text-center p-3 border rounded">
+                                    <p className="text-2xl font-bold">{flightData.altitude}</p>
+                                    <p className="text-xs opacity-70">feet</p>
+                                    <p className="text-sm">Flight Altitude</p>
+                                </div>
+                                <div className="text-center p-3 border rounded">
+                                    <p className="text-2xl font-bold">{flightData.efficiency}%</p>
+                                    <p className="text-sm">Flight Efficiency</p>
+                                </div>
+                                <div className="text-center p-3 border rounded">
+                                    <p className="text-2xl font-bold">{flightData.energyConsumption}</p>
+                                    <p className="text-xs opacity-70">joules</p>
+                                    <p className="text-sm">Energy Used</p>
+                                </div>
+                            </div>
+                            
+                            {/* Simple Chart Visualization */}
+                            <div className="mt-4">
+                                <h3 className="font-semibold mb-2">Energy Distribution</h3>
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-4 h-4 rounded bg-red-500"></div>
+                                        <span className="text-sm">Flapping: 60%</span>
+                                        <div className="flex-1 bg-gray-200 h-2 rounded">
+                                            <div className="bg-red-500 h-2 rounded" style={{width: '60%'}}></div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-4 h-4 rounded bg-blue-500"></div>
+                                        <span className="text-sm">Gliding: 25%</span>
+                                        <div className="flex-1 bg-gray-200 h-2 rounded">
+                                            <div className="bg-blue-500 h-2 rounded" style={{width: '25%'}}></div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-4 h-4 rounded bg-green-500"></div>
+                                        <span className="text-sm">Navigation: 15%</span>
+                                        <div className="flex-1 bg-gray-200 h-2 rounded">
+                                            <div className="bg-green-500 h-2 rounded" style={{width: '15%'}}></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // About Tab Component
+        function AboutTab() {
+            return (
+                <div className="pb-20 px-4 pt-6 space-y-6">
+                    <div className="text-center">
+                        <h1 className="text-2xl font-bold mb-2">About Bird Explorer</h1>
+                        <p className="text-sm opacity-70">Learn about our comprehensive bird identification tool</p>
+                    </div>
+
+                    <div className="card p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Icons.Info />
+                            <h2 className="text-lg font-semibold">Our Application</h2>
+                        </div>
+                        <p className="text-sm opacity-80 mb-4">
+                            Bird Explorer is a comprehensive tool designed to help bird enthusiasts identify, 
+                            learn about, and understand the fascinating world of birds. Whether you're a beginner 
+                            or an experienced birder, our app provides detailed information to enhance your 
+                            bird-watching experience.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="p-3 rounded" style={{background: 'hsl(var(--secondary))'}}>
+                                <h3 className="font-semibold flex items-center gap-2">
+                                    🔍 Explore
+                                </h3>
+                                <p className="text-sm opacity-70 mt-1">
+                                    Browse our comprehensive database of bird species with detailed anatomical information
+                                </p>
+                            </div>
+                            <div className="p-3 rounded" style={{background: 'hsl(var(--secondary))'}}>
+                                <h3 className="font-semibold flex items-center gap-2">
+                                    📷 Identify
+                                </h3>
+                                <p className="text-sm opacity-70 mt-1">
+                                    Use photo recognition or manual feature selection to identify unknown birds
+                                </p>
+                            </div>
+                            <div className="p-3 rounded" style={{background: 'hsl(var(--secondary))'}}>
+                                <h3 className="font-semibold flex items-center gap-2">
+                                    🧮 Calculate
+                                </h3>
+                                <p className="text-sm opacity-70 mt-1">
+                                    Analyze flight parameters and energy consumption for different bird species
+                                </p>
+                            </div>
+                            <div className="p-3 rounded" style={{background: 'hsl(var(--secondary))'}}>
+                                <h3 className="font-semibold flex items-center gap-2">
+                                    📚 Learn
+                                </h3>
+                                <p className="text-sm opacity-70 mt-1">
+                                    Discover fascinating facts about bird behavior, anatomy, and migration patterns
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card p-4">
+                        <h2 className="text-lg font-semibold mb-3">Fascinating Bird Facts</h2>
+                        <div className="space-y-3">
+                            <div className="p-3 border-l-4 border-blue-500" style={{background: 'hsl(var(--muted))'}}>
+                                <p className="text-sm">
+                                    <strong>Arctic Tern</strong> makes the longest migration of any bird, 
+                                    traveling roughly 44,000 miles annually from Arctic to Antarctic and back.
+                                </p>
+                            </div>
+                            <div className="p-3 border-l-4 border-green-500" style={{background: 'hsl(var(--muted))'}}>
+                                <p className="text-sm">
+                                    <strong>Peregrine Falcon</strong> can reach speeds of over 240 mph during 
+                                    hunting dives, making it the fastest animal on Earth.
+                                </p>
+                            </div>
+                            <div className="p-3 border-l-4 border-purple-500" style={{background: 'hsl(var(--muted))'}}>
+                                <p className="text-sm">
+                                    <strong>Hummingbirds</strong> are the only birds that can fly backwards and 
+                                    hover in place, with hearts beating up to 1,200 times per minute.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card p-4">
+                        <h2 className="text-lg font-semibold mb-3">Educational Impact</h2>
+                        <p className="text-sm opacity-80">
+                            Our tool serves as an educational resource for students, researchers, and bird 
+                            enthusiasts worldwide. By providing detailed anatomical information, flight 
+                            characteristics, and habitat data, we aim to foster a deeper understanding and 
+                            appreciation for avian biodiversity and conservation efforts.
+                        </p>
+                    </div>
+                </div>
+            );
+        }
+
+        // Bottom Navigation Component
+        function BottomNavigation({ activeTab, setActiveTab }) {
+            const navItems = [
+                { id: "explore", icon: Icons.Home, label: "Explore" },
+                { id: "identify", icon: Icons.Search, label: "Identify" },
+                { id: "calculate", icon: Icons.Calculator, label: "Calculate" },
+                { id: "about", icon: Icons.Info, label: "About" },
+            ];
+
+            return (
+                <div className="bottom-nav">
+                    {navItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                            <div
+                                key={item.id}
+                                className={`nav-item ${activeTab === item.id ? "active" : ""}`}
+                                onClick={() => setActiveTab(item.id)}
+                            >
+                                <Icon />
+                                <span className="text-xs">{item.label}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        }
+
+        // Main App Component
+        function App() {
+            const [activeTab, setActiveTab] = useState("explore");
+
+            const renderActiveTab = () => {
+                switch (activeTab) {
+                    case "explore":
+                        return <ExploreTab />;
+                    case "identify":
+                        return <IdentifyTab />;
+                    case "calculate":
+                        return <CalculateTab />;
+                    case "about":
+                        return <AboutTab />;
+                    default:
+                        return <ExploreTab />;
+                }
+            };
+
+            return (
+                <div style={{minHeight: '100vh', background: 'hsl(var(--background))'}}>
+                    {renderActiveTab()}
+                    <BottomNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
+                </div>
+            );
+        }
+
+        // Render the app
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
